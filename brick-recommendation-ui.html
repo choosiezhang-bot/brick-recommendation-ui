@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brick AI · Personal Recommendation Console</title>
+    <style>
+      :root {
+        --bg: #f6f8fb;
+        --panel: #ffffff;
+        --text: #111827;
+        --muted: #6b7280;
+        --line: #e5e7eb;
+        --primary: #2563eb;
+        --primary-soft: #dbeafe;
+        --good: #16a34a;
+        --warn: #f59e0b;
+        --shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+        --radius: 16px;
+      }
+
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+
+      .app {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .hero {
+        background: linear-gradient(135deg, #0f172a, #1d4ed8);
+        color: #fff;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: var(--shadow);
+        margin-bottom: 16px;
+      }
+      .hero h1 { margin: 0 0 8px; font-size: 1.35rem; }
+      .hero p { margin: 0; opacity: .92; }
+      .hero .meta { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+      .pill {
+        background: rgba(255,255,255,.16);
+        border: 1px solid rgba(255,255,255,.22);
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: .84rem;
+      }
+      .hero .btn {
+        margin-top: 16px;
+        background: #fff;
+        color: #0f172a;
+        border: 0;
+        border-radius: 10px;
+        padding: 9px 12px;
+        cursor: pointer;
+        font-weight: 600;
+      }
+
+      .filter {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(246,248,251,.95);
+        backdrop-filter: blur(6px);
+        padding: 10px 0;
+        margin-bottom: 14px;
+      }
+      .filter-inner {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--panel);
+        padding: 10px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .filter select, .filter input {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 8px 10px;
+        background: #fff;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1fr 330px;
+        gap: 16px;
+      }
+
+      .feed {
+        display: grid;
+        gap: 12px;
+      }
+
+      .card {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        transition: transform .12s ease, box-shadow .15s ease;
+      }
+      .card:hover { transform: translateY(-2px); box-shadow: 0 14px 35px rgba(30,41,59,.12); }
+      .row {
+        display: grid;
+        grid-template-columns: 220px 1fr 240px;
+        gap: 12px;
+        padding: 12px;
+      }
+      .thumb {
+        border-radius: 12px;
+        background-size: cover;
+        background-position: center;
+        min-height: 140px;
+      }
+      .title { margin: 0 0 6px; font-size: 1.04rem; }
+      .price { font-weight: 700; margin-bottom: 6px; }
+      .sub { color: var(--muted); font-size: .9rem; }
+
+      .score {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: var(--primary);
+      }
+      .tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
+      .tag {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        border-radius: 999px;
+        font-size: .78rem;
+        padding: 3px 8px;
+      }
+
+      .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+      .btn {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 7px 10px;
+        background: #fff;
+        cursor: pointer;
+      }
+      .btn.primary {
+        border-color: var(--primary);
+        color: var(--primary);
+      }
+      .btn.fav.active {
+        background: #dcfce7;
+        border-color: #86efac;
+        color: #166534;
+        transform: scale(0.98);
+      }
+
+      .detail {
+        border-top: 1px solid var(--line);
+        padding: 12px;
+        display: none;
+        background: #fcfdff;
+      }
+      .detail.open { display: block; }
+      .bars { display: grid; gap: 10px; }
+      .bar {
+        display: grid;
+        grid-template-columns: 110px 1fr 48px;
+        gap: 10px;
+        align-items: center;
+        font-size: .88rem;
+      }
+      .track {
+        height: 8px;
+        border-radius: 999px;
+        background: #e5e7eb;
+        overflow: hidden;
+      }
+      .fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+      .risk {
+        margin-top: 10px;
+        padding: 8px 10px;
+        border-radius: 10px;
+        border: 1px solid #fde68a;
+        background: #fffbeb;
+        color: #92400e;
+        font-size: .88rem;
+      }
+
+      .dock {
+        position: sticky;
+        top: 78px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 14px;
+        height: fit-content;
+      }
+      .dock h3 { margin: 2px 0 10px; }
+      .dock .count { color: var(--muted); font-size: .9rem; margin-bottom: 10px; }
+      .dock .stack { display: grid; gap: 8px; }
+      .dock .cta {
+        width: 100%;
+        padding: 10px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: #fff;
+        cursor: pointer;
+        text-align: left;
+      }
+      .dock .cta.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+      .footer-note {
+        margin: 18px 0 2px;
+        padding: 12px;
+        color: #374151;
+        border: 1px dashed #cbd5e1;
+        border-radius: 12px;
+        background: #fff;
+      }
+
+      .skeleton {
+        animation: pulse 1.1s infinite;
+        background: linear-gradient(90deg, #edf2f7, #f8fafc, #edf2f7);
+        background-size: 200% 100%;
+      }
+      @keyframes pulse {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+      }
+
+      @media (max-width: 980px) {
+        .layout { grid-template-columns: 1fr; }
+        .row { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <section class="hero">
+        <h1 id="hero-title">Hi, Z，今天为你筛出 18 套高匹配房源</h1>
+        <p id="hero-sub">匹配依据：预算 120w以内｜通勤 ≤35min｜2-3房｜偏安静社区</p>
+        <div class="meta">
+          <span class="pill">个性化推荐控制台</span>
+          <span class="pill">Feed + Explain + Action</span>
+          <span class="pill" id="update-state">状态：已按你的偏好生成</span>
+        </div>
+        <button class="btn" id="adjust-pref">调整偏好</button>
+      </section>
+
+      <section class="filter">
+        <div class="filter-inner">
+          <select id="budget">
+            <option value="120">预算 ≤120w</option>
+            <option value="140">预算 ≤140w</option>
+            <option value="160">预算 ≤160w</option>
+          </select>
+          <select id="commute">
+            <option value="35">通勤 ≤35min</option>
+            <option value="45">通勤 ≤45min</option>
+          </select>
+          <select id="bedroom">
+            <option value="23">2-3房</option>
+            <option value="34">3-4房</option>
+          </select>
+          <select>
+            <option>学区：中高优先</option>
+            <option>学区：不限</option>
+          </select>
+          <select>
+            <option>风险阈值：低风险优先</option>
+            <option>风险阈值：可接受中风险</option>
+          </select>
+        </div>
+      </section>
+
+      <div class="layout">
+        <main class="feed" id="feed"></main>
+
+        <aside class="dock">
+          <h3>Decision Dock</h3>
+          <div class="count" id="compare-count">已选对比：0 套</div>
+          <div class="stack">
+            <button class="cta primary">生成对比报告</button>
+            <button class="cta">生成看房清单</button>
+            <button class="cta">联系顾问</button>
+            <button class="cta">预约本周看房</button>
+          </div>
+        </aside>
+      </div>
+
+      <div class="footer-note">
+        今天为什么没推荐更多？当前筛选条件偏严格（预算 + 通勤 + 安静社区 + 风险阈值），因此只保留高置信度候选。
+      </div>
+    </div>
+
+    <script>
+      const homes = [
+        {
+          id: 1,
+          title: 'Chatswood · 2房2卫 公寓',
+          price: '$1.08M',
+          sub: '78㎡｜步行到站 9 分钟｜建于 2019',
+          score: 89,
+          tags: ['通勤短', '预算内', '安静街区'],
+          img: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80',
+          metrics: { '预算匹配': 9, '通勤匹配': 8, '社区环境': 7 },
+          risk: '晚高峰主路有轻微噪音，建议工作日晚间二次看房。'
+        },
+        {
+          id: 2,
+          title: 'Epping · 3房2卫 联排',
+          price: '$1.19M',
+          sub: '112㎡｜双车位｜近公园和学区',
+          score: 86,
+          tags: ['学区匹配', '空间更大', '社区稳定'],
+          img: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80',
+          metrics: { '预算匹配': 8, '通勤匹配': 7, '社区环境': 9 },
+          risk: 'Strata 近三年维修支出偏高，建议核查会议纪要。'
+        },
+        {
+          id: 3,
+          title: 'Lane Cove · 2房1卫 公寓',
+          price: '$0.98M',
+          sub: '70㎡｜朝北采光｜近公交枢纽',
+          score: 84,
+          tags: ['性价比高', '预算宽松', '生活便利'],
+          img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=80',
+          metrics: { '预算匹配': 10, '通勤匹配': 7, '社区环境': 7 },
+          risk: '楼龄较老，建议重点查看防水与外墙维护记录。'
+        }
+      ];
+
+      const feed = document.getElementById('feed');
+      const compareCount = document.getElementById('compare-count');
+      let compareSet = new Set();
+
+      function renderCards(list) {
+        feed.innerHTML = list.map(home => `
+          <article class="card" data-id="${home.id}">
+            <div class="row">
+              <div class="thumb" style="background-image:url('${home.img}')"></div>
+              <div>
+                <h3 class="title">${home.title}</h3>
+                <div class="price">${home.price}</div>
+                <div class="sub">${home.sub}</div>
+              </div>
+              <div>
+                <div class="score">${home.score}%</div>
+                <div class="sub">匹配分</div>
+                <div class="tags">${home.tags.map(t => `<span class='tag'>${t}</span>`).join('')}</div>
+                <div class="actions">
+                  <button class="btn primary toggle-detail">查看分析</button>
+                  <button class="btn add-compare">加入对比</button>
+                  <button class="btn fav">收藏</button>
+                  <button class="btn">预约看房</button>
+                </div>
+              </div>
+            </div>
+            <div class="detail">
+              <div class="bars">
+                ${Object.entries(home.metrics).map(([k, v]) => `
+                  <div class="bar">
+                    <span>${k}</span>
+                    <div class="track"><div class="fill" style="width:${v * 10}%"></div></div>
+                    <strong>${v}/10</strong>
+                  </div>
+                `).join('')}
+              </div>
+              <div class="risk">⚠️ 风险提醒：${home.risk}</div>
+            </div>
+          </article>
+        `).join('');
+      }
+
+      function bindEvents() {
+        feed.addEventListener('click', (e) => {
+          const card = e.target.closest('.card');
+          if (!card) return;
+          const detail = card.querySelector('.detail');
+
+          if (e.target.classList.contains('toggle-detail')) {
+            detail.classList.toggle('open');
+            e.target.textContent = detail.classList.contains('open') ? '收起分析' : '查看分析';
+          }
+
+          if (e.target.classList.contains('add-compare')) {
+            const id = Number(card.dataset.id);
+            if (compareSet.has(id)) {
+              compareSet.delete(id);
+              e.target.textContent = '加入对比';
+            } else {
+              compareSet.add(id);
+              e.target.textContent = '已加入';
+            }
+            compareCount.textContent = `已选对比：${compareSet.size} 套`;
+          }
+
+          if (e.target.classList.contains('fav')) {
+            e.target.classList.toggle('active');
+            e.target.textContent = e.target.classList.contains('active') ? '已收藏' : '收藏';
+          }
+        });
+
+        document.getElementById('adjust-pref').addEventListener('click', () => {
+          const state = document.getElementById('update-state');
+          state.textContent = '状态：已按你的新偏好更新';
+          feed.classList.add('skeleton');
+          setTimeout(() => feed.classList.remove('skeleton'), 500);
+        });
+
+        const onPrefChange = () => {
+          const b = document.getElementById('budget').value;
+          const c = document.getElementById('commute').value;
+          document.getElementById('hero-sub').textContent = `匹配依据：预算 ${b}w以内｜通勤 ≤${c}min｜2-3房｜偏安静社区`;
+          document.getElementById('update-state').textContent = '状态：已按你的新偏好更新';
+        };
+
+        document.getElementById('budget').addEventListener('change', onPrefChange);
+        document.getElementById('commute').addEventListener('change', onPrefChange);
+      }
+
+      renderCards(homes);
+      bindEvents();
+    </script>
+  </body>
+</html>
