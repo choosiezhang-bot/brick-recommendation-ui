@@ -6,220 +6,618 @@
     <title>Brick AI · Personal Recommendation Console</title>
     <style>
       :root {
-        --bg: #f6f8fb;
-        --panel: #ffffff;
-        --text: #111827;
-        --muted: #6b7280;
-        --line: #e5e7eb;
+        --bg: #f4f7fb;
+        --bg-accent: radial-gradient(circle at top left, rgba(37, 99, 235, 0.1), transparent 28%),
+          radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 24%), #f4f7fb;
+        --panel: rgba(255, 255, 255, 0.94);
+        --panel-solid: #ffffff;
+        --text: #0f172a;
+        --muted: #64748b;
+        --line: rgba(148, 163, 184, 0.2);
+        --line-strong: rgba(148, 163, 184, 0.34);
         --primary: #2563eb;
-        --primary-soft: #dbeafe;
-        --good: #16a34a;
-        --warn: #f59e0b;
-        --shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
-        --radius: 16px;
+        --primary-strong: #1d4ed8;
+        --primary-soft: rgba(37, 99, 235, 0.12);
+        --good: #15803d;
+        --warn: #b45309;
+        --warn-soft: #fff7ed;
+        --shadow-lg: 0 24px 60px rgba(15, 23, 42, 0.12);
+        --shadow-md: 0 14px 34px rgba(15, 23, 42, 0.08);
+        --shadow-sm: 0 10px 22px rgba(15, 23, 42, 0.05);
+        --radius-xl: 28px;
+        --radius-lg: 22px;
+        --radius-md: 18px;
+        --radius-sm: 14px;
       }
 
-      * { box-sizing: border-box; }
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
       body {
         margin: 0;
         font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
-        background: var(--bg);
+        background: var(--bg-accent);
         color: var(--text);
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button,
+      select,
+      input {
+        font: inherit;
       }
 
       .app {
         max-width: 1320px;
         margin: 0 auto;
-        padding: 20px;
+        padding: 20px 20px 104px;
       }
 
       .hero {
-        background: linear-gradient(135deg, #0f172a, #1d4ed8);
+        position: relative;
+        overflow: hidden;
+        background:
+          linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(29, 78, 216, 0.94)),
+          linear-gradient(135deg, #0f172a, #2563eb);
         color: #fff;
-        border-radius: 20px;
-        padding: 24px;
-        box-shadow: var(--shadow);
-        margin-bottom: 16px;
+        border-radius: var(--radius-xl);
+        padding: 28px;
+        box-shadow: var(--shadow-lg);
+        margin-bottom: 18px;
       }
-      .hero h1 { margin: 0 0 8px; font-size: 1.35rem; }
-      .hero p { margin: 0; opacity: .92; }
-      .hero .meta { margin-top: 14px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+      .hero::after {
+        content: "";
+        position: absolute;
+        inset: auto -80px -110px auto;
+        width: 280px;
+        height: 280px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.08);
+        filter: blur(8px);
+      }
+
+      .hero-copy,
+      .hero-actions {
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero-top {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+        align-items: flex-start;
+      }
+
+      .hero h1 {
+        margin: 0 0 10px;
+        font-size: clamp(1.5rem, 2.2vw, 2.2rem);
+        line-height: 1.1;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 680px;
+        color: rgba(255, 255, 255, 0.86);
+      }
+
+      .meta {
+        margin-top: 18px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
       .pill {
-        background: rgba(255,255,255,.16);
-        border: 1px solid rgba(255,255,255,.22);
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.16);
         border-radius: 999px;
-        padding: 6px 10px;
-        font-size: .84rem;
+        padding: 8px 12px;
+        font-size: 0.84rem;
+        letter-spacing: 0.01em;
       }
+
+      .hero-actions {
+        display: grid;
+        gap: 10px;
+        min-width: 190px;
+      }
+
       .hero .btn {
-        margin-top: 16px;
-        background: #fff;
+        background: rgba(255, 255, 255, 0.96);
         color: #0f172a;
         border: 0;
-        border-radius: 10px;
-        padding: 9px 12px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 42px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: var(--panel-solid);
+        color: var(--text);
         cursor: pointer;
-        font-weight: 600;
+        transition: transform 0.14s ease, box-shadow 0.14s ease, background 0.14s ease, border-color 0.14s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .btn.primary {
+        background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+        border-color: transparent;
+        color: #fff;
+      }
+
+      .btn.secondary {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.16);
+        color: #fff;
+      }
+
+      .btn.ghost {
+        background: transparent;
+      }
+
+      .btn.fav.active {
+        background: #dcfce7;
+        border-color: #86efac;
+        color: #166534;
       }
 
       .filter {
         position: sticky;
         top: 0;
-        z-index: 10;
-        background: rgba(246,248,251,.95);
-        backdrop-filter: blur(6px);
-        padding: 10px 0;
-        margin-bottom: 14px;
+        z-index: 20;
+        padding: 8px 0 14px;
+        margin-bottom: 8px;
+        background: linear-gradient(180deg, rgba(244, 247, 251, 0.96), rgba(244, 247, 251, 0.82) 84%, rgba(244, 247, 251, 0));
+        backdrop-filter: blur(8px);
       }
+
       .filter-inner {
-        border: 1px solid var(--line);
-        border-radius: 14px;
-        background: var(--panel);
-        padding: 10px;
         display: flex;
         gap: 10px;
         flex-wrap: wrap;
-      }
-      .filter select, .filter input {
+        padding: 12px;
+        border-radius: var(--radius-md);
         border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 8px 10px;
-        background: #fff;
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: var(--shadow-sm);
+      }
+
+      .control {
+        display: grid;
+        gap: 6px;
+        min-width: 150px;
+        flex: 1 1 0;
+      }
+
+      .control span {
+        font-size: 0.78rem;
+        color: var(--muted);
+      }
+
+      .filter select,
+      .filter input {
+        min-height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 12px;
+        background: rgba(255, 255, 255, 0.96);
       }
 
       .layout {
         display: grid;
-        grid-template-columns: 1fr 330px;
-        gap: 16px;
+        grid-template-columns: minmax(0, 1fr) 340px;
+        gap: 18px;
+        align-items: start;
       }
 
       .feed {
         display: grid;
-        gap: 12px;
+        gap: 14px;
       }
 
       .card {
         background: var(--panel);
         border: 1px solid var(--line);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
         overflow: hidden;
-        transition: transform .12s ease, box-shadow .15s ease;
+        backdrop-filter: blur(8px);
+        transition: transform 0.14s ease, box-shadow 0.14s ease;
       }
-      .card:hover { transform: translateY(-2px); box-shadow: 0 14px 35px rgba(30,41,59,.12); }
+
+      .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 36px rgba(15, 23, 42, 0.1);
+      }
+
       .row {
         display: grid;
-        grid-template-columns: 220px 1fr 240px;
-        gap: 12px;
-        padding: 12px;
+        grid-template-columns: 232px minmax(0, 1fr) 250px;
+        gap: 14px;
+        padding: 14px;
       }
+
       .thumb {
-        border-radius: 12px;
+        position: relative;
+        min-height: 170px;
+        border-radius: var(--radius-md);
         background-size: cover;
         background-position: center;
-        min-height: 140px;
+        overflow: hidden;
       }
-      .title { margin: 0 0 6px; font-size: 1.04rem; }
-      .price { font-weight: 700; margin-bottom: 6px; }
-      .sub { color: var(--muted); font-size: .9rem; }
+
+      .thumb::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 0;
+        height: 46%;
+        background: linear-gradient(180deg, rgba(15, 23, 42, 0), rgba(15, 23, 42, 0.48));
+      }
+
+      .match-badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        z-index: 1;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--primary-strong);
+        font-size: 0.78rem;
+        font-weight: 700;
+      }
+
+      .thumb-note {
+        position: absolute;
+        left: 12px;
+        right: 12px;
+        bottom: 10px;
+        z-index: 1;
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 0.82rem;
+      }
+
+      .card-copy {
+        min-width: 0;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--primary);
+      }
+
+      .title {
+        margin: 0 0 6px;
+        font-size: 1.12rem;
+      }
+
+      .price {
+        margin-bottom: 8px;
+        font-size: 1.12rem;
+        font-weight: 700;
+      }
+
+      .sub {
+        color: var(--muted);
+        font-size: 0.92rem;
+        line-height: 1.5;
+      }
+
+      .mini-metrics {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 14px;
+      }
+
+      .mini-metric {
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(248, 250, 252, 0.9);
+        border: 1px solid var(--line);
+      }
+
+      .mini-metric strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 0.96rem;
+      }
+
+      .mini-metric span {
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .card-side {
+        display: grid;
+        align-content: start;
+        gap: 12px;
+      }
+
+      .score-wrap {
+        padding: 14px;
+        border-radius: var(--radius-md);
+        border: 1px solid rgba(37, 99, 235, 0.18);
+        background: linear-gradient(180deg, rgba(37, 99, 235, 0.08), rgba(37, 99, 235, 0.03));
+      }
 
       .score {
-        font-size: 1.4rem;
+        font-size: 2rem;
+        line-height: 1;
         font-weight: 800;
         color: var(--primary);
       }
-      .tags { display: flex; gap: 6px; flex-wrap: wrap; margin: 8px 0; }
-      .tag {
-        background: #eff6ff;
-        color: #1d4ed8;
-        border: 1px solid #bfdbfe;
-        border-radius: 999px;
-        font-size: .78rem;
-        padding: 3px 8px;
+
+      .score-sub {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 0.88rem;
       }
 
-      .actions { display: flex; gap: 6px; flex-wrap: wrap; }
-      .btn {
+      .tags {
+        display: flex;
+        gap: 7px;
+        flex-wrap: wrap;
+      }
+
+      .tag {
+        background: rgba(219, 234, 254, 0.7);
+        color: #1d4ed8;
+        border: 1px solid rgba(191, 219, 254, 0.9);
+        border-radius: 999px;
+        font-size: 0.78rem;
+        padding: 5px 10px;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .actions .btn,
+      .actions .btn-link {
+        width: 100%;
+      }
+
+      .btn-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 42px;
+        padding: 10px 14px;
+        border-radius: 12px;
         border: 1px solid var(--line);
-        border-radius: 10px;
-        padding: 7px 10px;
-        background: #fff;
-        cursor: pointer;
-      }
-      .btn.primary {
-        border-color: var(--primary);
-        color: var(--primary);
-      }
-      .btn.fav.active {
-        background: #dcfce7;
-        border-color: #86efac;
-        color: #166534;
-        transform: scale(0.98);
+        background: var(--panel-solid);
       }
 
       .detail {
-        border-top: 1px solid var(--line);
-        padding: 12px;
         display: none;
-        background: #fcfdff;
+        padding: 0 14px 14px;
       }
-      .detail.open { display: block; }
-      .bars { display: grid; gap: 10px; }
+
+      .detail.open {
+        display: block;
+      }
+
+      .detail-shell {
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius-md);
+        background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(255, 255, 255, 0.96));
+      }
+
+      .detail-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: baseline;
+      }
+
+      .detail-head h4 {
+        margin: 0;
+        font-size: 1rem;
+      }
+
+      .detail-summary {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .bars {
+        display: grid;
+        gap: 10px;
+      }
+
       .bar {
         display: grid;
-        grid-template-columns: 110px 1fr 48px;
+        grid-template-columns: 104px minmax(0, 1fr) 44px;
         gap: 10px;
         align-items: center;
-        font-size: .88rem;
+        font-size: 0.88rem;
       }
+
       .track {
         height: 8px;
         border-radius: 999px;
-        background: #e5e7eb;
+        background: #e2e8f0;
         overflow: hidden;
       }
-      .fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #06b6d4); }
+
+      .fill {
+        height: 100%;
+        background: linear-gradient(90deg, #2563eb, #0ea5e9);
+      }
+
+      .detail-columns {
+        display: grid;
+        grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+        gap: 12px;
+      }
+
+      .insight,
       .risk {
-        margin-top: 10px;
-        padding: 8px 10px;
-        border-radius: 10px;
-        border: 1px solid #fde68a;
-        background: #fffbeb;
-        color: #92400e;
-        font-size: .88rem;
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .insight strong,
+      .risk strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+
+      .insight {
+        color: var(--text);
+      }
+
+      .risk {
+        background: var(--warn-soft);
+        border-color: rgba(245, 158, 11, 0.22);
+        color: var(--warn);
       }
 
       .dock {
         position: sticky;
-        top: 78px;
-        background: var(--panel);
+        top: 84px;
+        display: grid;
+        gap: 12px;
+        padding: 16px;
         border: 1px solid var(--line);
-        border-radius: var(--radius);
-        box-shadow: var(--shadow);
-        padding: 14px;
+        border-radius: var(--radius-lg);
+        background: rgba(255, 255, 255, 0.94);
+        box-shadow: var(--shadow-md);
+        backdrop-filter: blur(10px);
         height: fit-content;
       }
-      .dock h3 { margin: 2px 0 10px; }
-      .dock .count { color: var(--muted); font-size: .9rem; margin-bottom: 10px; }
-      .dock .stack { display: grid; gap: 8px; }
-      .dock .cta {
-        width: 100%;
-        padding: 10px;
-        border-radius: 10px;
-        border: 1px solid var(--line);
-        background: #fff;
-        cursor: pointer;
-        text-align: left;
+
+      .dock-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
       }
-      .dock .cta.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+      .dock h3 {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+
+      .dock p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .dock-stack {
+        display: grid;
+        gap: 10px;
+      }
+
+      .dock-card {
+        padding: 12px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(248, 250, 252, 0.9);
+      }
+
+      .dock-card strong {
+        display: block;
+        margin-bottom: 4px;
+      }
+
+      .dock-card span {
+        color: var(--muted);
+        font-size: 0.84rem;
+      }
+
+      .dock-actions {
+        display: grid;
+        gap: 10px;
+      }
 
       .footer-note {
-        margin: 18px 0 2px;
-        padding: 12px;
-        color: #374151;
-        border: 1px dashed #cbd5e1;
-        border-radius: 12px;
-        background: #fff;
+        margin: 18px 0 0;
+        padding: 14px 16px;
+        color: #334155;
+        border: 1px dashed rgba(148, 163, 184, 0.42);
+        border-radius: var(--radius-md);
+        background: rgba(255, 255, 255, 0.78);
+      }
+
+      .mobile-action-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 40;
+        display: none;
+        gap: 10px;
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+        background: rgba(255, 255, 255, 0.94);
+        border-top: 1px solid var(--line);
+        box-shadow: 0 -12px 30px rgba(15, 23, 42, 0.12);
+        backdrop-filter: blur(10px);
+      }
+
+      .mobile-action-bar .btn {
+        flex: 1;
+      }
+
+      .mobile-count {
+        display: grid;
+        gap: 2px;
+        justify-content: start;
+        min-width: 86px;
+      }
+
+      .mobile-count strong {
+        font-size: 1rem;
+      }
+
+      .mobile-count span {
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .drawer-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 29;
+        display: none;
+        background: rgba(15, 23, 42, 0.34);
+      }
+
+      .drawer-backdrop.open {
+        display: block;
       }
 
       .skeleton {
@@ -227,67 +625,298 @@
         background: linear-gradient(90deg, #edf2f7, #f8fafc, #edf2f7);
         background-size: 200% 100%;
       }
+
       @keyframes pulse {
-        0% { background-position: 200% 0; }
-        100% { background-position: -200% 0; }
+        0% {
+          background-position: 200% 0;
+        }
+
+        100% {
+          background-position: -200% 0;
+        }
       }
 
-      @media (max-width: 980px) {
-        .layout { grid-template-columns: 1fr; }
-        .row { grid-template-columns: 1fr; }
+      @media (max-width: 1080px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .dock {
+          position: static;
+        }
+      }
+
+      @media (max-width: 760px) {
+        .app {
+          padding: 14px 14px 112px;
+        }
+
+        .hero {
+          padding: 20px;
+          border-radius: 24px;
+        }
+
+        .hero-top {
+          flex-direction: column;
+        }
+
+        .hero-actions {
+          width: 100%;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .filter {
+          top: 0;
+          padding: 6px 0 12px;
+        }
+
+        .filter-inner {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 10px;
+          padding: 12px;
+        }
+
+        .control {
+          min-width: 0;
+        }
+
+        .feed {
+          gap: 12px;
+        }
+
+        .row {
+          grid-template-columns: 108px minmax(0, 1fr);
+          gap: 12px;
+          padding: 12px;
+        }
+
+        .thumb {
+          min-height: 118px;
+          border-radius: 16px;
+        }
+
+        .thumb-note {
+          display: none;
+        }
+
+        .card-side {
+          grid-column: 1 / -1;
+          gap: 10px;
+        }
+
+        .score-wrap {
+          display: grid;
+          grid-template-columns: auto 1fr;
+          gap: 12px;
+          align-items: center;
+          padding: 12px;
+        }
+
+        .score {
+          font-size: 1.7rem;
+        }
+
+        .actions {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .mini-metrics {
+          gap: 8px;
+        }
+
+        .mini-metric {
+          padding: 8px 10px;
+        }
+
+        .detail {
+          padding: 0 12px 12px;
+        }
+
+        .detail-shell {
+          padding: 14px;
+        }
+
+        .detail-columns {
+          grid-template-columns: 1fr;
+        }
+
+        .dock {
+          position: fixed;
+          left: 12px;
+          right: 12px;
+          bottom: calc(76px + env(safe-area-inset-bottom));
+          z-index: 30;
+          border-radius: 24px;
+          transform: translateY(calc(100% + 18px));
+          transition: transform 0.24s ease;
+          max-height: min(72vh, 540px);
+          overflow: auto;
+        }
+
+        .dock.mobile-open {
+          transform: translateY(0);
+        }
+
+        .dock::before {
+          content: "";
+          width: 44px;
+          height: 4px;
+          border-radius: 999px;
+          background: #cbd5e1;
+          margin: 2px auto 0;
+        }
+
+        .mobile-action-bar {
+          display: flex;
+          align-items: center;
+        }
+
+        .footer-note {
+          margin-bottom: 24px;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .hero h1 {
+          font-size: 1.38rem;
+        }
+
+        .hero-actions,
+        .filter-inner,
+        .actions {
+          grid-template-columns: 1fr;
+        }
+
+        .row {
+          grid-template-columns: 96px minmax(0, 1fr);
+          gap: 10px;
+        }
+
+        .thumb {
+          min-height: 102px;
+        }
+
+        .title {
+          font-size: 1rem;
+        }
+
+        .price {
+          font-size: 1rem;
+        }
+
+        .sub {
+          font-size: 0.86rem;
+        }
+
+        .mini-metrics {
+          grid-template-columns: 1fr;
+        }
+
+        .bar {
+          grid-template-columns: 84px minmax(0, 1fr) 38px;
+          gap: 8px;
+          font-size: 0.82rem;
+        }
+
+        .detail-head {
+          flex-direction: column;
+          align-items: flex-start;
+        }
       }
     </style>
   </head>
   <body>
     <div class="app">
       <section class="hero">
-        <h1 id="hero-title">Hi, Z，今天为你筛出 18 套高匹配房源</h1>
-        <p id="hero-sub">匹配依据：预算 120w以内｜通勤 ≤35min｜2-3房｜偏安静社区</p>
-        <div class="meta">
-          <span class="pill">个性化推荐控制台</span>
-          <span class="pill">Feed + Explain + Action</span>
-          <span class="pill" id="update-state">状态：已按你的偏好生成</span>
+        <div class="hero-top">
+          <div class="hero-copy">
+            <h1 id="hero-title">Hi, Z，今天为你筛出 18 套高匹配房源</h1>
+            <p id="hero-sub">匹配依据：预算 120w以内｜通勤 ≤35min｜2-3房｜偏安静社区</p>
+            <div class="meta">
+              <span class="pill">个性化推荐控制台</span>
+              <span class="pill">Feed + Explain + Action</span>
+              <span class="pill" id="update-state">状态：已按你的偏好生成</span>
+            </div>
+          </div>
+          <div class="hero-actions">
+            <button class="btn" id="adjust-pref">调整偏好</button>
+            <a class="btn secondary" href="property-detail.html">查看样例详情</a>
+          </div>
         </div>
-        <button class="btn" id="adjust-pref">调整偏好</button>
       </section>
 
       <section class="filter">
         <div class="filter-inner">
-          <select id="budget">
-            <option value="120">预算 ≤120w</option>
-            <option value="140">预算 ≤140w</option>
-            <option value="160">预算 ≤160w</option>
-          </select>
-          <select id="commute">
-            <option value="35">通勤 ≤35min</option>
-            <option value="45">通勤 ≤45min</option>
-          </select>
-          <select id="bedroom">
-            <option value="23">2-3房</option>
-            <option value="34">3-4房</option>
-          </select>
-          <select>
-            <option>学区：中高优先</option>
-            <option>学区：不限</option>
-          </select>
-          <select>
-            <option>风险阈值：低风险优先</option>
-            <option>风险阈值：可接受中风险</option>
-          </select>
+          <label class="control">
+            <span>预算</span>
+            <select id="budget">
+              <option value="120">预算 ≤120w</option>
+              <option value="140">预算 ≤140w</option>
+              <option value="160">预算 ≤160w</option>
+            </select>
+          </label>
+          <label class="control">
+            <span>通勤</span>
+            <select id="commute">
+              <option value="35">通勤 ≤35min</option>
+              <option value="45">通勤 ≤45min</option>
+            </select>
+          </label>
+          <label class="control">
+            <span>户型</span>
+            <select id="bedroom">
+              <option value="23">2-3房</option>
+              <option value="34">3-4房</option>
+            </select>
+          </label>
+          <label class="control">
+            <span>偏好</span>
+            <select id="school">
+              <option>学区：中高优先</option>
+              <option>学区：不限</option>
+            </select>
+          </label>
+          <label class="control">
+            <span>风险阈值</span>
+            <select id="risk-level">
+              <option>低风险优先</option>
+              <option>可接受中风险</option>
+            </select>
+          </label>
         </div>
       </section>
 
       <div class="layout">
         <main class="feed" id="feed"></main>
 
-        <aside class="dock">
-          <h3>Decision Dock</h3>
-          <div class="count" id="compare-count">已选对比：0 套</div>
-          <div class="stack">
-            <button class="cta primary">生成对比报告</button>
-            <button class="cta">生成看房清单</button>
-            <button class="cta">联系顾问</button>
-            <button class="cta">预约本周看房</button>
+        <aside class="dock" id="decision-dock" aria-label="Decision Dock">
+          <div class="dock-header">
+            <div>
+              <h3>Decision Dock</h3>
+              <p>把短名单转成明确下一步。</p>
+            </div>
+            <button class="btn ghost" id="dock-close" type="button" aria-label="关闭决策抽屉">收起</button>
+          </div>
+          <div class="dock-card">
+            <strong id="compare-count">已选对比：0 套</strong>
+            <span id="dock-summary">继续从推荐流中加入 2-3 套候选，系统会给出结构化解释。</span>
+          </div>
+          <div class="dock-stack">
+            <div class="dock-card">
+              <strong>优先动作</strong>
+              <span>先生成对比报告，再约看房，减少来回切换。</span>
+            </div>
+            <div class="dock-card">
+              <strong>当前策略</strong>
+              <span>偏预算纪律 + 通勤优先，允许轻微噪音但回避高维修风险。</span>
+            </div>
+          </div>
+          <div class="dock-actions">
+            <button class="btn primary" type="button">生成对比报告</button>
+            <button class="btn" type="button">生成看房清单</button>
+            <button class="btn" type="button">联系顾问</button>
+            <button class="btn" type="button">预约本周看房</button>
           </div>
         </aside>
       </div>
@@ -297,133 +926,262 @@
       </div>
     </div>
 
+    <div class="drawer-backdrop" id="drawer-backdrop"></div>
+
+    <div class="mobile-action-bar">
+      <div class="mobile-count">
+        <strong id="mobile-compare-count">0 套</strong>
+        <span>已加入对比</span>
+      </div>
+      <button class="btn" id="mobile-dock-toggle" type="button">打开 Decision Dock</button>
+      <button class="btn primary" type="button">生成报告</button>
+    </div>
+
     <script>
       const homes = [
         {
           id: 1,
-          title: 'Chatswood · 2房2卫 公寓',
-          price: '$1.08M',
-          sub: '78㎡｜步行到站 9 分钟｜建于 2019',
+          title: "Chatswood · 2房2卫 公寓",
+          price: "$1.08M",
+          sub: "78㎡｜步行到站 9 分钟｜建于 2019",
           score: 89,
-          tags: ['通勤短', '预算内', '安静街区'],
-          img: 'https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80',
-          metrics: { '预算匹配': 9, '通勤匹配': 8, '社区环境': 7 },
-          risk: '晚高峰主路有轻微噪音，建议工作日晚间二次看房。'
+          intro: "适合重视通勤效率和日常便利的首套改善用户。",
+          tags: ["通勤短", "预算内", "安静街区"],
+          img: "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=900&q=80",
+          metrics: { "预算匹配": 9, "通勤匹配": 8, "社区环境": 7 },
+          quickFacts: [
+            { value: "9 分钟", label: "步行到站" },
+            { value: "2019", label: "楼龄" },
+            { value: "78㎡", label: "室内面积" }
+          ],
+          explain: "价格控制在预算内，通勤和社区安静度都处于高位，适合作为当前 shortlist 头部候选。",
+          risk: "晚高峰主路有轻微噪音，建议工作日晚间二次看房。"
         },
         {
           id: 2,
-          title: 'Epping · 3房2卫 联排',
-          price: '$1.19M',
-          sub: '112㎡｜双车位｜近公园和学区',
+          title: "Epping · 3房2卫 联排",
+          price: "$1.19M",
+          sub: "112㎡｜双车位｜近公园和学区",
           score: 86,
-          tags: ['学区匹配', '空间更大', '社区稳定'],
-          img: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80',
-          metrics: { '预算匹配': 8, '通勤匹配': 7, '社区环境': 9 },
-          risk: 'Strata 近三年维修支出偏高，建议核查会议纪要。'
+          intro: "更偏向家庭型需求，空间与学区表现更强。",
+          tags: ["学区匹配", "空间更大", "社区稳定"],
+          img: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=900&q=80",
+          metrics: { "预算匹配": 8, "通勤匹配": 7, "社区环境": 9 },
+          quickFacts: [
+            { value: "112㎡", label: "室内面积" },
+            { value: "2 车位", label: "停车" },
+            { value: "Top 学区", label: "家庭适配" }
+          ],
+          explain: "空间和学校资源突出，预算略接近上限，但整体稳定性和居住舒适度很强。",
+          risk: "Strata 近三年维修支出偏高，建议核查会议纪要。"
         },
         {
           id: 3,
-          title: 'Lane Cove · 2房1卫 公寓',
-          price: '$0.98M',
-          sub: '70㎡｜朝北采光｜近公交枢纽',
+          title: "Lane Cove · 2房1卫 公寓",
+          price: "$0.98M",
+          sub: "70㎡｜朝北采光｜近公交枢纽",
           score: 84,
-          tags: ['性价比高', '预算宽松', '生活便利'],
-          img: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=80',
-          metrics: { '预算匹配': 10, '通勤匹配': 7, '社区环境': 7 },
-          risk: '楼龄较老，建议重点查看防水与外墙维护记录。'
+          intro: "预算松弛度高，适合把现金流安全放在前面。",
+          tags: ["性价比高", "预算宽松", "生活便利"],
+          img: "https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=900&q=80",
+          metrics: { "预算匹配": 10, "通勤匹配": 7, "社区环境": 7 },
+          quickFacts: [
+            { value: "$0.98M", label: "总价" },
+            { value: "朝北", label: "采光" },
+            { value: "公交枢纽", label: "出行" }
+          ],
+          explain: "总价更安全，通勤维持可接受水平，整体是稳妥型选择。",
+          risk: "楼龄较老，建议重点查看防水与外墙维护记录。"
         }
       ];
 
-      const feed = document.getElementById('feed');
-      const compareCount = document.getElementById('compare-count');
-      let compareSet = new Set();
+      const feed = document.getElementById("feed");
+      const compareCount = document.getElementById("compare-count");
+      const mobileCompareCount = document.getElementById("mobile-compare-count");
+      const dockSummary = document.getElementById("dock-summary");
+      const dock = document.getElementById("decision-dock");
+      const backdrop = document.getElementById("drawer-backdrop");
+      const mobileDockToggle = document.getElementById("mobile-dock-toggle");
+      const dockClose = document.getElementById("dock-close");
+      const compareSet = new Set();
 
       function renderCards(list) {
-        feed.innerHTML = list.map(home => `
-          <article class="card" data-id="${home.id}">
-            <div class="row">
-              <div class="thumb" style="background-image:url('${home.img}')"></div>
-              <div>
-                <h3 class="title">${home.title}</h3>
-                <div class="price">${home.price}</div>
-                <div class="sub">${home.sub}</div>
-              </div>
-              <div>
-                <div class="score">${home.score}%</div>
-                <div class="sub">匹配分</div>
-                <div class="tags">${home.tags.map(t => `<span class='tag'>${t}</span>`).join('')}</div>
-                <div class="actions">
-                  <button class="btn primary toggle-detail">查看分析</button>
-                  <button class="btn add-compare">加入对比</button>
-                  <button class="btn fav">收藏</button>
-                  <button class="btn">预约看房</button>
-                </div>
-              </div>
-            </div>
-            <div class="detail">
-              <div class="bars">
-                ${Object.entries(home.metrics).map(([k, v]) => `
-                  <div class="bar">
-                    <span>${k}</span>
-                    <div class="track"><div class="fill" style="width:${v * 10}%"></div></div>
-                    <strong>${v}/10</strong>
+        feed.innerHTML = list
+          .map(
+            (home) => `
+              <article class="card" data-id="${home.id}">
+                <div class="row">
+                  <div class="thumb" style="background-image:url('${home.img}')">
+                    <span class="match-badge">Top Match ${home.score}%</span>
+                    <div class="thumb-note">${home.intro}</div>
                   </div>
-                `).join('')}
-              </div>
-              <div class="risk">⚠️ 风险提醒：${home.risk}</div>
-            </div>
-          </article>
-        `).join('');
+                  <div class="card-copy">
+                    <p class="eyebrow">Brick AI 推荐</p>
+                    <h3 class="title">${home.title}</h3>
+                    <div class="price">${home.price}</div>
+                    <div class="sub">${home.sub}</div>
+                    <div class="mini-metrics">
+                      ${home.quickFacts
+                        .map(
+                          (fact) => `
+                            <div class="mini-metric">
+                              <strong>${fact.value}</strong>
+                              <span>${fact.label}</span>
+                            </div>
+                          `
+                        )
+                        .join("")}
+                    </div>
+                  </div>
+                  <div class="card-side">
+                    <div class="score-wrap">
+                      <div class="score">${home.score}%</div>
+                      <div class="score-sub">综合匹配分，兼顾预算、通勤、环境与风险。</div>
+                    </div>
+                    <div class="tags">${home.tags.map((tag) => `<span class="tag">${tag}</span>`).join("")}</div>
+                    <div class="actions">
+                      <button class="btn toggle-detail primary" type="button">查看分析</button>
+                      <a class="btn-link" href="property-detail.html">查看详情</a>
+                      <button class="btn add-compare" type="button">加入对比</button>
+                      <button class="btn fav" type="button">收藏</button>
+                      <button class="btn" type="button">预约看房</button>
+                      <button class="btn" type="button">生成建议</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="detail">
+                  <div class="detail-shell">
+                    <div class="detail-head">
+                      <h4>推荐解释</h4>
+                      <div class="detail-summary">${home.explain}</div>
+                    </div>
+                    <div class="detail-columns">
+                      <div class="bars">
+                        ${Object.entries(home.metrics)
+                          .map(
+                            ([key, value]) => `
+                              <div class="bar">
+                                <span>${key}</span>
+                                <div class="track"><div class="fill" style="width:${value * 10}%"></div></div>
+                                <strong>${value}/10</strong>
+                              </div>
+                            `
+                          )
+                          .join("")}
+                      </div>
+                      <div class="risk">
+                        <strong>风险提醒</strong>
+                        ${home.risk}
+                      </div>
+                    </div>
+                    <div class="insight">
+                      <strong>推荐逻辑</strong>
+                      当前候选在预算纪律和居住稳定性之间保持均衡，适合进入 shortlist 做线下确认。
+                    </div>
+                  </div>
+                </div>
+              </article>
+            `
+          )
+          .join("");
+      }
+
+      function syncCompareUI() {
+        const count = compareSet.size;
+        compareCount.textContent = `已选对比：${count} 套`;
+        mobileCompareCount.textContent = `${count} 套`;
+        dockSummary.textContent =
+          count === 0
+            ? "继续从推荐流中加入 2-3 套候选，系统会给出结构化解释。"
+            : `当前已选 ${count} 套，建议下一步直接生成对比报告并锁定看房路线。`;
+      }
+
+      function setDockOpen(open) {
+        if (window.innerWidth > 760) {
+          dock.classList.remove("mobile-open");
+          backdrop.classList.remove("open");
+          return;
+        }
+        dock.classList.toggle("mobile-open", open);
+        backdrop.classList.toggle("open", open);
+        mobileDockToggle.textContent = open ? "收起 Decision Dock" : "打开 Decision Dock";
       }
 
       function bindEvents() {
-        feed.addEventListener('click', (e) => {
-          const card = e.target.closest('.card');
-          if (!card) return;
-          const detail = card.querySelector('.detail');
-
-          if (e.target.classList.contains('toggle-detail')) {
-            detail.classList.toggle('open');
-            e.target.textContent = detail.classList.contains('open') ? '收起分析' : '查看分析';
+        feed.addEventListener("click", (event) => {
+          const target = event.target;
+          const card = target.closest(".card");
+          if (!card) {
+            return;
           }
 
-          if (e.target.classList.contains('add-compare')) {
+          const detail = card.querySelector(".detail");
+
+          if (target.classList.contains("toggle-detail")) {
+            detail.classList.toggle("open");
+            target.textContent = detail.classList.contains("open") ? "收起分析" : "查看分析";
+          }
+
+          if (target.classList.contains("add-compare")) {
             const id = Number(card.dataset.id);
-            if (compareSet.has(id)) {
-              compareSet.delete(id);
-              e.target.textContent = '加入对比';
-            } else {
+            const added = !compareSet.has(id);
+
+            if (added) {
               compareSet.add(id);
-              e.target.textContent = '已加入';
+            } else {
+              compareSet.delete(id);
             }
-            compareCount.textContent = `已选对比：${compareSet.size} 套`;
+
+            target.textContent = added ? "已加入" : "加入对比";
+            syncCompareUI();
           }
 
-          if (e.target.classList.contains('fav')) {
-            e.target.classList.toggle('active');
-            e.target.textContent = e.target.classList.contains('active') ? '已收藏' : '收藏';
+          if (target.classList.contains("fav")) {
+            target.classList.toggle("active");
+            target.textContent = target.classList.contains("active") ? "已收藏" : "收藏";
           }
         });
 
-        document.getElementById('adjust-pref').addEventListener('click', () => {
-          const state = document.getElementById('update-state');
-          state.textContent = '状态：已按你的新偏好更新';
-          feed.classList.add('skeleton');
-          setTimeout(() => feed.classList.remove('skeleton'), 500);
+        document.getElementById("adjust-pref").addEventListener("click", () => {
+          const state = document.getElementById("update-state");
+          state.textContent = "状态：已按你的新偏好更新";
+          feed.classList.add("skeleton");
+          setTimeout(() => feed.classList.remove("skeleton"), 500);
         });
 
         const onPrefChange = () => {
-          const b = document.getElementById('budget').value;
-          const c = document.getElementById('commute').value;
-          document.getElementById('hero-sub').textContent = `匹配依据：预算 ${b}w以内｜通勤 ≤${c}min｜2-3房｜偏安静社区`;
-          document.getElementById('update-state').textContent = '状态：已按你的新偏好更新';
+          const budget = document.getElementById("budget").value;
+          const commute = document.getElementById("commute").value;
+          const bedroom = document.getElementById("bedroom").value === "23" ? "2-3房" : "3-4房";
+          document.getElementById("hero-sub").textContent = `匹配依据：预算 ${budget}w以内｜通勤 ≤${commute}min｜${bedroom}｜偏安静社区`;
+          document.getElementById("update-state").textContent = "状态：已按你的新偏好更新";
         };
 
-        document.getElementById('budget').addEventListener('change', onPrefChange);
-        document.getElementById('commute').addEventListener('change', onPrefChange);
+        ["budget", "commute", "bedroom", "school", "risk-level"].forEach((id) => {
+          document.getElementById(id).addEventListener("change", onPrefChange);
+        });
+
+        mobileDockToggle.addEventListener("click", () => {
+          setDockOpen(!dock.classList.contains("mobile-open"));
+        });
+
+        dockClose.addEventListener("click", () => {
+          setDockOpen(false);
+        });
+
+        backdrop.addEventListener("click", () => {
+          setDockOpen(false);
+        });
+
+        window.addEventListener("resize", () => {
+          if (window.innerWidth > 760) {
+            setDockOpen(false);
+          }
+        });
       }
 
       renderCards(homes);
+      syncCompareUI();
       bindEvents();
     </script>
   </body>
