@@ -159,6 +159,13 @@
         box-shadow: var(--shadow-sm);
       }
 
+      .btn:disabled {
+        opacity: 0.56;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
       .btn.primary {
         background: linear-gradient(135deg, var(--primary), var(--primary-strong));
         border-color: transparent;
@@ -542,6 +549,13 @@
         gap: 10px;
       }
 
+      .progress-item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+      }
+
       .dock-card {
         padding: 12px;
         border-radius: 14px;
@@ -557,6 +571,43 @@
       .dock-card span {
         color: var(--muted);
         font-size: 0.84rem;
+      }
+
+      .dock-next {
+        display: grid;
+        gap: 8px;
+      }
+
+      .dock-feedback {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        width: fit-content;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(21, 128, 61, 0.1);
+        color: var(--good);
+        font-size: 0.78rem;
+      }
+
+      .dock-feedback.visible {
+        display: inline-flex;
+      }
+
+      .progress-badge {
+        min-width: 56px;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(37, 99, 235, 0.08);
+        color: var(--primary-strong);
+        font-size: 0.82rem;
+        font-weight: 600;
+        text-align: center;
+      }
+
+      .progress-badge.warn {
+        background: rgba(180, 83, 9, 0.1);
+        color: var(--warn);
       }
 
       .dock-actions {
@@ -588,6 +639,20 @@
         backdrop-filter: blur(10px);
       }
 
+      .mobile-progress-trigger {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 52px;
+        padding: 10px 12px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: rgba(248, 250, 252, 0.92);
+        color: var(--text);
+        cursor: pointer;
+      }
+
       .mobile-action-bar .btn {
         flex: 1;
       }
@@ -606,6 +671,14 @@
       .mobile-count span {
         color: var(--muted);
         font-size: 0.78rem;
+      }
+
+      .mobile-progress-trigger .mobile-count strong {
+        font-size: 0.98rem;
+      }
+
+      .mobile-progress-trigger .mobile-count span {
+        text-align: left;
       }
 
       .drawer-backdrop {
@@ -823,6 +896,11 @@
           flex-direction: column;
           align-items: flex-start;
         }
+
+        .mobile-action-bar {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr);
+        }
       }
     </style>
   </head>
@@ -890,33 +968,49 @@
       <div class="layout">
         <main class="feed" id="feed"></main>
 
-        <aside class="dock" id="decision-dock" aria-label="Decision Dock">
+        <aside class="dock" id="decision-dock" aria-label="决策进度">
           <div class="dock-header">
             <div>
-              <h3>Decision Dock</h3>
-              <p>把短名单转成明确下一步。</p>
+              <h3>决策进度</h3>
+              <p>随时看清你已经推进到哪一步，以及现在最合适的下一步。</p>
             </div>
             <button class="btn ghost" id="dock-close" type="button" aria-label="关闭决策抽屉">收起</button>
           </div>
-          <div class="dock-card">
-            <strong id="compare-count">已选对比：0 套</strong>
-            <span id="dock-summary">继续从推荐流中加入 2-3 套候选，系统会给出结构化解释。</span>
+          <div class="dock-card dock-next">
+            <strong id="dock-next-label">下一步：再加入 2 套候选</strong>
+            <span id="dock-summary">先把 shortlist 补到 2-3 套，再生成报告会更有参考价值。</span>
+            <div class="dock-feedback" id="dock-feedback">已生成报告（2分钟前）</div>
           </div>
           <div class="dock-stack">
-            <div class="dock-card">
-              <strong>优先动作</strong>
-              <span>先生成对比报告，再约看房，减少来回切换。</span>
+            <div class="dock-card progress-item">
+              <div>
+                <strong id="compare-count">已选对比：0 套</strong>
+                <span id="compare-progress-text">还需加入 2 套候选，报告才有对比价值。</span>
+              </div>
+              <div class="progress-badge" id="compare-progress-badge">0/2</div>
             </div>
-            <div class="dock-card">
-              <strong>当前策略</strong>
-              <span>偏预算纪律 + 通勤优先，允许轻微噪音但回避高维修风险。</span>
+            <div class="dock-card progress-item">
+              <div>
+                <strong>已预约</strong>
+                <span id="appointment-progress-text">0 套，建议看完报告后再统一预约。</span>
+              </div>
+              <div class="progress-badge" id="appointment-progress-badge">0</div>
+            </div>
+            <div class="dock-card progress-item">
+              <div>
+                <strong>待确认风险</strong>
+                <span id="risk-progress-text">0 项，加入候选后会自动汇总需要线下确认的风险。</span>
+              </div>
+              <div class="progress-badge warn" id="risk-progress-badge">0</div>
             </div>
           </div>
+          <div class="dock-card">
+            <strong>当前判断基线</strong>
+            <span>预算纪律 + 通勤优先，允许轻微噪音，但回避高维修风险与不透明 strata 记录。</span>
+          </div>
           <div class="dock-actions">
-            <button class="btn primary" type="button">生成对比报告</button>
-            <button class="btn" type="button">生成看房清单</button>
-            <button class="btn" type="button">联系顾问</button>
-            <button class="btn" type="button">预约本周看房</button>
+            <button class="btn primary" id="primary-next-action" type="button">下一步：再加入 2 套候选</button>
+            <button class="btn" id="secondary-action" type="button">联系顾问</button>
           </div>
         </aside>
       </div>
@@ -929,12 +1023,13 @@
     <div class="drawer-backdrop" id="drawer-backdrop"></div>
 
     <div class="mobile-action-bar">
-      <div class="mobile-count">
-        <strong id="mobile-compare-count">0 套</strong>
-        <span>已加入对比</span>
-      </div>
-      <button class="btn" id="mobile-dock-toggle" type="button">打开 Decision Dock</button>
-      <button class="btn primary" type="button">生成报告</button>
+      <button class="mobile-progress-trigger" id="mobile-dock-toggle" type="button" aria-controls="decision-dock" aria-expanded="false">
+        <div class="mobile-count">
+          <strong id="mobile-progress-count">0/3</strong>
+          <span id="mobile-progress-label">已完成 0/3 步</span>
+        </div>
+      </button>
+      <button class="btn primary" id="mobile-primary-action" type="button">下一步：再加入 2 套候选</button>
     </div>
 
     <script>
@@ -997,13 +1092,93 @@
 
       const feed = document.getElementById("feed");
       const compareCount = document.getElementById("compare-count");
-      const mobileCompareCount = document.getElementById("mobile-compare-count");
+      const compareProgressText = document.getElementById("compare-progress-text");
+      const compareProgressBadge = document.getElementById("compare-progress-badge");
+      const appointmentProgressText = document.getElementById("appointment-progress-text");
+      const appointmentProgressBadge = document.getElementById("appointment-progress-badge");
+      const riskProgressText = document.getElementById("risk-progress-text");
+      const riskProgressBadge = document.getElementById("risk-progress-badge");
+      const dockNextLabel = document.getElementById("dock-next-label");
       const dockSummary = document.getElementById("dock-summary");
+      const dockFeedback = document.getElementById("dock-feedback");
       const dock = document.getElementById("decision-dock");
       const backdrop = document.getElementById("drawer-backdrop");
       const mobileDockToggle = document.getElementById("mobile-dock-toggle");
+      const mobileProgressCount = document.getElementById("mobile-progress-count");
+      const mobileProgressLabel = document.getElementById("mobile-progress-label");
       const dockClose = document.getElementById("dock-close");
+      const primaryNextAction = document.getElementById("primary-next-action");
+      const mobilePrimaryAction = document.getElementById("mobile-primary-action");
+      const secondaryAction = document.getElementById("secondary-action");
       const compareSet = new Set();
+      const appointmentSet = new Set();
+      let reportGenerated = false;
+
+      function getDecisionState() {
+        const compare = compareSet.size;
+        const appointments = appointmentSet.size;
+        const risks = compare;
+        const completed = Number(compare >= 2) + Number(reportGenerated) + Number(appointments > 0);
+
+        if (compare < 2) {
+          const remaining = 2 - compare;
+          return {
+            compare,
+            appointments,
+            risks,
+            completed,
+            primaryLabel: `下一步：再加入 ${remaining} 套候选`,
+            summary: "先把 shortlist 补到 2-3 套，再生成报告会更有参考价值。",
+            compareText: remaining === 2 ? "还需加入 2 套候选，报告才有对比价值。" : "还差 1 套候选，就可以开始生成对比报告。",
+            appointmentText: "0 套，建议看完报告后再统一预约。",
+            riskText: risks === 0 ? "0 项，加入候选后会自动汇总需要线下确认的风险。" : `已识别 ${risks} 项待确认风险，先完成报告再决定看房顺序。`,
+            secondaryLabel: "联系顾问"
+          };
+        }
+
+        if (!reportGenerated) {
+          return {
+            compare,
+            appointments,
+            risks,
+            completed,
+            primaryLabel: "下一步：生成对比报告",
+            summary: `已选 ${compare} 套，先生成一份对比报告，再决定优先预约哪几套。`,
+            compareText: `已选 ${compare} 套，信息已足够生成结构化对比。`,
+            appointmentText: "0 套，建议先看报告，再减少无效预约。",
+            riskText: `共 ${risks} 项待确认风险，报告会帮你按优先级整理。`,
+            secondaryLabel: "继续加入候选"
+          };
+        }
+
+        if (appointments === 0) {
+          return {
+            compare,
+            appointments,
+            risks,
+            completed,
+            primaryLabel: "下一步：预约看房",
+            summary: "报告已生成，建议优先预约 Top 1-2 套高匹配候选做线下确认。",
+            compareText: `已选 ${compare} 套，报告已生成，可直接进入预约。`,
+            appointmentText: "0 套，优先预约最想确认的 1-2 套。",
+            riskText: `共 ${risks} 项待确认风险，预约时重点核查噪音、楼龄和 strata。`,
+            secondaryLabel: "联系顾问"
+          };
+        }
+
+        return {
+          compare,
+          appointments,
+          risks,
+          completed,
+          primaryLabel: "下一步：确认剩余风险",
+          summary: `已预约 ${appointments} 套，线下优先确认噪音、维修记录和 strata 细节。`,
+          compareText: `已选 ${compare} 套，对比与预约顺序已基本明确。`,
+          appointmentText: `已预约 ${appointments} 套，可按报告顺序安排实地查看。`,
+          riskText: `还有 ${risks} 项风险待线下确认，避免只看价格做决定。`,
+          secondaryLabel: "生成看房清单"
+        };
+      }
 
       function renderCards(list) {
         feed.innerHTML = list
@@ -1044,7 +1219,7 @@
                       <a class="btn-link" href="property-detail.html">查看详情</a>
                       <button class="btn add-compare" type="button">加入对比</button>
                       <button class="btn fav" type="button">收藏</button>
-                      <button class="btn" type="button">预约看房</button>
+                      <button class="btn schedule-tour" type="button">预约看房</button>
                       <button class="btn" type="button">生成建议</button>
                     </div>
                   </div>
@@ -1086,25 +1261,81 @@
           .join("");
       }
 
+      function syncCardActionStates() {
+        feed.querySelectorAll(".card").forEach((card) => {
+          const id = Number(card.dataset.id);
+          const compareButton = card.querySelector(".add-compare");
+          const scheduleButton = card.querySelector(".schedule-tour");
+
+          if (compareButton) {
+            compareButton.textContent = compareSet.has(id) ? "已加入" : "加入对比";
+          }
+
+          if (scheduleButton) {
+            scheduleButton.disabled = !reportGenerated;
+            scheduleButton.textContent = reportGenerated ? (appointmentSet.has(id) ? "已预约" : "预约看房") : "先生成报告";
+          }
+        });
+      }
+
       function syncCompareUI() {
-        const count = compareSet.size;
-        compareCount.textContent = `已选对比：${count} 套`;
-        mobileCompareCount.textContent = `${count} 套`;
-        dockSummary.textContent =
-          count === 0
-            ? "继续从推荐流中加入 2-3 套候选，系统会给出结构化解释。"
-            : `当前已选 ${count} 套，建议下一步直接生成对比报告并锁定看房路线。`;
+        const state = getDecisionState();
+        compareCount.textContent = `已选对比：${state.compare} 套`;
+        compareProgressText.textContent = state.compareText;
+        compareProgressBadge.textContent = `${Math.min(state.compare, 2)}/2`;
+        appointmentProgressText.textContent = state.appointmentText;
+        appointmentProgressBadge.textContent = `${state.appointments}`;
+        riskProgressText.textContent = state.riskText;
+        riskProgressBadge.textContent = `${state.risks}`;
+        dockNextLabel.textContent = state.primaryLabel;
+        dockSummary.textContent = state.summary;
+        primaryNextAction.textContent = state.primaryLabel;
+        mobilePrimaryAction.textContent = state.primaryLabel;
+        secondaryAction.textContent = state.secondaryLabel;
+        mobileProgressCount.textContent = `${state.completed}/3`;
+        mobileProgressLabel.textContent = reportGenerated ? "已生成报告（2分钟前）" : `已完成 ${state.completed}/3 步`;
+        dockFeedback.classList.toggle("visible", reportGenerated);
+        syncCardActionStates();
       }
 
       function setDockOpen(open) {
         if (window.innerWidth > 760) {
           dock.classList.remove("mobile-open");
           backdrop.classList.remove("open");
+          mobileDockToggle.setAttribute("aria-expanded", "false");
           return;
         }
         dock.classList.toggle("mobile-open", open);
         backdrop.classList.toggle("open", open);
-        mobileDockToggle.textContent = open ? "收起 Decision Dock" : "打开 Decision Dock";
+        mobileDockToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      }
+
+      function handlePrimaryAction() {
+        const state = getDecisionState();
+
+        if (state.compare < 2) {
+          window.scrollTo({ top: feed.offsetTop - 72, behavior: "smooth" });
+          setDockOpen(false);
+          return;
+        }
+
+        if (!reportGenerated) {
+          reportGenerated = true;
+          syncCompareUI();
+          return;
+        }
+
+        if (appointmentSet.size === 0) {
+          compareSet.forEach((id) => {
+            if (appointmentSet.size < 2) {
+              appointmentSet.add(id);
+            }
+          });
+          syncCompareUI();
+          return;
+        }
+
+        setDockOpen(true);
       }
 
       function bindEvents() {
@@ -1130,9 +1361,28 @@
               compareSet.add(id);
             } else {
               compareSet.delete(id);
+              appointmentSet.delete(id);
+              if (compareSet.size < 2) {
+                reportGenerated = false;
+                appointmentSet.clear();
+              }
             }
 
             target.textContent = added ? "已加入" : "加入对比";
+            syncCompareUI();
+          }
+
+          if (target.classList.contains("schedule-tour")) {
+            const id = Number(card.dataset.id);
+            const scheduled = !appointmentSet.has(id);
+
+            if (scheduled) {
+              appointmentSet.add(id);
+            } else {
+              appointmentSet.delete(id);
+            }
+
+            target.textContent = scheduled ? "已预约" : "预约看房";
             syncCompareUI();
           }
 
@@ -1163,6 +1413,10 @@
 
         mobileDockToggle.addEventListener("click", () => {
           setDockOpen(!dock.classList.contains("mobile-open"));
+        });
+
+        [primaryNextAction, mobilePrimaryAction].forEach((button) => {
+          button.addEventListener("click", handlePrimaryAction);
         });
 
         dockClose.addEventListener("click", () => {
